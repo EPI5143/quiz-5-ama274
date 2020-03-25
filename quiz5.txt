@@ -1,0 +1,77 @@
+name Ama Adutwumwaa Tweneboa kodua 
+
+/* question 1 dataset that only contains admission between 1st jan 2003 to 31st dec 2004*/ 
+
+data spine;
+set large.nhrabstracts;
+where year( datepart(hraAdmDtm))= 2003 or year (datepart(hraadmdtm)) = 2004;
+run;
+
+/*  question 2 and 3 identifying diabetes diagnosis and flat fileing it  */
+proc sort data= large.nhrdiagnosis out =diagnosis;
+by hdghraencwid;
+run;
+data diabetes;
+set diagnosis;
+by hdghraencwid;
+if first.hdghraencwid then do;
+dm=0 ; count=0;
+end;
+if hdgcd in :('250' 'E10' 'E11') then do;
+dm=1; count=count+1; end;
+if last.hdghraencwid then output;
+retain dm count;
+run;
+proc freq data= diabetes;
+tables dm count;
+run;
+
+/*Sorting ro make mke sure there is no duplicate*/
+proc sort data = spine nodupkey;
+by hraencwid;
+run;
+proc sort data=diabetes;
+by hdghraencwid;
+run;
+
+/*merging*/
+ data assign;
+ merge spine( in=a) diabetes(in=b rename= (hdghraencwid = hraencwid));
+ by hraencwid;
+ if a;
+ if dm=. then dm=0;
+ if count=. then count=0;
+ if dm_count=. then dm_count=0;
+ run;
+ 
+proc freq data = assign;
+ tables dm count dm_count;
+ run;
+
+The SAS System 
+
+
+The FREQ Procedure
+
+dm Frequency Percent Cumulative
+Frequency Cumulative
+Percent 
+0 2147 96.28 2147 96.28 
+1 83 3.72 2230 100.00 
+
+
+
+count Frequency Percent Cumulative
+Frequency Cumulative
+Percent 
+0 2147 96.28 2147 96.28 
+1 83 3.72 2230 100.00 
+
+
+
+dm_count Frequency Percent Cumulative
+Frequency Cumulative
+Percent 
+0 2230 100.00 2230 100.00 
+
+
